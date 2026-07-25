@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMI Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E211D;
+    --bg:#0B1815;
+    --card:#F6F3EC;
+    --card-line:#E4DFD1;
+    --vital:#2F8F6B;
+    --vital-bright:#3FBF8F;
+    --amber:#D9A441;
+    --coral:#D9633F;
+    --blue:#3E7CB1;
+    --muted:#6B7772;
+    --shadow: 0 30px 60px -20px rgba(10,25,20,0.45);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(63,191,143,0.08), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(217,164,65,0.06), transparent 45%),
+      var(--bg);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    padding:40px 20px;
+  }
+
+  .stage{
+    width:100%;
+    max-width:460px;
+  }
+
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:rgba(246,243,236,0.55);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-bottom:14px;
+    font-weight:600;
+  }
+  .eyebrow .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--vital-bright);
+    box-shadow:0 0 0 4px rgba(63,191,143,0.15);
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:40px 36px 34px;
+    border:1px solid rgba(255,255,255,0.4);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .card::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:4px;
+    background:linear-gradient(90deg, var(--vital), var(--amber), var(--coral));
+    opacity:0.9;
+  }
+
+  .title-row{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    margin-bottom:30px;
+  }
+
+  .logo-badge{
+    flex-shrink:0;
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    background:#FDECF1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: inset 0 0 0 1px rgba(232,71,122,0.15);
+  }
+
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-size:32px;
+    font-weight:600;
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    margin-bottom:4px;
+  }
+
+  .subtitle{
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  .field{
+    margin-bottom:18px;
+  }
+
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+
+  .field label .unit{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:500;
+    color:var(--muted);
+    font-size:11.5px;
+  }
+
+  .input-wrap{
+    position:relative;
+  }
+
+  input[type="number"]{
+    width:100%;
+    padding:14px 16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:17px;
+    font-weight:500;
+    border-radius:14px;
+    border:1.5px solid var(--card-line);
+    background:#FFFFFF;
+    color:var(--ink);
+    outline:none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+
+  input[type="number"]:focus{
+    border-color:var(--vital-bright);
+    box-shadow:0 0 0 4px rgba(63,191,143,0.14);
+  }
+
+  input[type="number"].invalid{
+    border-color:var(--coral);
+    box-shadow:0 0 0 4px rgba(217,99,63,0.14);
+  }
+
+  button.calc{
+    width:100%;
+    margin-top:8px;
+    padding:15px 18px;
+    border:none;
+    border-radius:14px;
+    background:var(--ink);
+    color:var(--card);
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  button.calc:hover{ background:#1B322C; transform:translateY(-1px); }
+  button.calc:active{ transform:translateY(0px); }
+
+  /* --- Result / gauge area --- */
+  .result{
+    margin-top:30px;
+    padding-top:26px;
+    border-top:1px dashed var(--card-line);
+    display:none;
+  }
+  .result.show{ display:block; }
+
+  .gauge-row{
+    display:flex;
+    align-items:center;
+    gap:24px;
+  }
+
+  .gauge-wrap{
+    position:relative;
+    width:150px;
+    height:150px;
+    flex-shrink:0;
+  }
+
+  .gauge-wrap svg{ width:100%; height:100%; overflow:visible; }
+
+  .gauge-value{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .gauge-value .num{
+    font-family:'Fraunces', serif;
+    font-size:32px;
+    font-weight:600;
+    line-height:1;
+  }
+  .gauge-value .lbl{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    margin-top:4px;
+    text-transform:uppercase;
+  }
+
+  .result-copy{ flex:1; }
+
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 12px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    margin-bottom:10px;
+  }
+
+  .status-pill .dot{ width:6px; height:6px; border-radius:50%; }
+
+  .result-copy p{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+
+  .cat-grid{
+    margin-top:24px;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+
+  .cat-card{
+    text-align:center;
+    padding:12px 6px 10px;
+    border-radius:12px;
+    border:1.5px solid var(--card-line);
+    background:#FFFFFF;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .cat-card .swatch{
+    display:inline-block;
+    width:8px; height:8px;
+    border-radius:50%;
+    margin-bottom:6px;
+  }
+
+  .cat-card .cat-name{
+    font-size:11.5px;
+    font-weight:700;
+    line-height:1.2;
+  }
+
+  .cat-card .cat-range{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+
+  .cat-card.active{
+    border-color:currentColor;
+    box-shadow:0 6px 16px -8px rgba(0,0,0,0.25);
+    transform:translateY(-2px);
+  }
+
+  .error-msg{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(217,99,63,0.1);
+    border:1px solid rgba(217,99,63,0.3);
+    color:#B0492C;
+    font-size:12.5px;
+    font-weight:500;
+  }
+  .error-msg.show{ display:block; }
+
+  footer.credit{
+    text-align:center;
+    margin-top:22px;
+    font-size:11.5px;
+    color:rgba(246,243,236,0.4);
+    letter-spacing:0.02em;
+  }
+
+  @media (max-width:420px){
+    .card{ padding:30px 22px 26px; }
+    .gauge-row{ flex-direction:column; text-align:center; }
+  }
+
+  @media (max-width:360px){
+    .cat-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="eyebrow"><span class="dot"></span> Body composition instrument</div>
+
+  <div class="card">
+    <div class="title-row">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+          <path d="M12 21s-7.2-4.6-10-9.3C0.4 8.7 1.8 5 5.4 4.2 7.6 3.7 9.8 4.7 12 7c2.2-2.3 4.4-3.3 6.6-2.8 3.6.8 5 4.5 3.4 7.5C19.2 16.4 12 21 12 21z"
+                fill="#E8477A"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="title">BMI Calculator</h1>
+        <p class="subtitle">Enter your height and weight to read your Body Mass Index.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="height">Height <span class="unit">CM</span></label>
+      <div class="input-wrap">
+        <input type="number" id="height" placeholder="e.g. 175" min="50" max="272" step="0.1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="weight">Weight <span class="unit">KG</span></label>
+      <div class="input-wrap">
+        <input type="number" id="weight" placeholder="e.g. 70" min="1" max="500" step="0.1">
+      </div>
+    </div>
+
+    <button class="calc" id="calcBtn">Calculate BMI</button>
+
+    <div class="error-msg" id="errorMsg">Please enter a valid height and weight to continue.</div>
+
+    <div class="result" id="result">
+      <div class="gauge-row">
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="62" fill="none" stroke="#E4DFD1" stroke-width="12"/>
+            <circle id="gaugeArc" cx="75" cy="75" r="62" fill="none" stroke="var(--vital-bright)"
+                    stroke-width="12" stroke-linecap="round"
+                    stroke-dasharray="389.6" stroke-dashoffset="389.6"
+                    transform="rotate(-90 75 75)"/>
+          </svg>
+          <div class="gauge-value">
+            <div class="num" id="bmiNum">0.0</div>
+            <div class="lbl">BMI</div>
+          </div>
+        </div>
+
+        <div class="result-copy">
+          <div class="status-pill" id="statusPill">
+            <span class="dot"></span><span id="statusText">Normal</span>
+          </div>
+          <p id="statusDesc">You have a normal body weight for your height.</p>
+        </div>
+      </div>
+
+      <div class="cat-grid">
+        <div class="cat-card" data-key="under">
+          <span class="swatch" style="background:var(--blue)"></span>
+          <div class="cat-name">Underweight</div>
+          <div class="cat-range">&lt; 18.5</div>
+        </div>
+        <div class="cat-card" data-key="normal">
+          <span class="swatch" style="background:var(--vital-bright)"></span>
+          <div class="cat-name">Normal</div>
+          <div class="cat-range">18.5 – 24.9</div>
+        </div>
+        <div class="cat-card" data-key="over">
+          <span class="swatch" style="background:var(--amber)"></span>
+          <div class="cat-name">Overweight</div>
+          <div class="cat-range">25 – 29.9</div>
+        </div>
+        <div class="cat-card" data-key="obese">
+          <span class="swatch" style="background:var(--coral)"></span>
+          <div class="cat-name">Obese</div>
+          <div class="cat-range">&ge; 30</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="credit">Results are for reference only, not medical advice.</footer>
+</div>
+
+<script>
+(function(){
+  const heightInput = document.getElementById('height');
+  const weightInput = document.getElementById('weight');
+  const calcBtn = document.getElementById('calcBtn');
+  const result = document.getElementById('result');
+  const errorMsg = document.getElementById('errorMsg');
+  const gaugeArc = document.getElementById('gaugeArc');
+  const bmiNum = document.getElementById('bmiNum');
+  const statusPill = document.getElementById('statusPill');
+  const statusText = document.getElementById('statusText');
+  const statusDesc = document.getElementById('statusDesc');
+
+  const CIRCUMFERENCE = 2 * Math.PI * 62; // 389.6
+
+  const CATEGORIES = [
+    { max: 18.5, key:'under',  label:'Underweight', color:'#3E7CB1', desc:'Your weight is below the typical range for your height.' },
+    { max: 25,   key:'normal', label:'Normal',       color:'#2F8F6B', desc:'You have a normal body weight for your height.' },
+    { max: 30,   key:'over',   label:'Overweight',   color:'#D9A441', desc:'Your weight is above the typical range for your height.' },
+    { max: Infinity, key:'obese', label:'Obese',     color:'#D9633F', desc:'Your weight is well above the typical range for your height.' }
+  ];
+
+  function clearValidity(){
+    heightInput.classList.remove('invalid');
+    weightInput.classList.remove('invalid');
+    errorMsg.classList.remove('show');
+  }
+
+  function validate(h, w){
+    let ok = true;
+    if (!h || h <= 0 || h > 272){
+      heightInput.classList.add('invalid');
+      ok = false;
+    }
+    if (!w || w <= 0 || w > 500){
+      weightInput.classList.add('invalid');
+      ok = false;
+    }
+    return ok;
+  }
+
+  function categoryFor(bmi){
+    return CATEGORIES.find(c => bmi < c.max);
+  }
+
+  function animateGauge(bmi){
+    // Map BMI 10 -> 45 onto a 0 -> 0.92 fraction of the ring (leave a small gap)
+    const clamped = Math.min(Math.max(bmi, 10), 45);
+    const fraction = (clamped - 10) / (45 - 10);
+    const offset = CIRCUMFERENCE * (1 - fraction * 0.92);
+    requestAnimationFrame(() => {
+      gaugeArc.style.transition = 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1), stroke 0.4s ease';
+      gaugeArc.style.strokeDashoffset = offset;
+    });
+  }
+
+  function animateNumber(target){
+    const duration = 600;
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      bmiNum.textContent = (target * eased).toFixed(1);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function calculate(){
+    clearValidity();
+    const h = parseFloat(heightInput.value);
+    const w = parseFloat(weightInput.value);
+
+    if (!validate(h, w)){
+      errorMsg.classList.add('show');
+      result.classList.remove('show');
+      return;
+    }
+
+    const heightM = h / 100;
+    const bmi = w / (heightM * heightM);
+    const cat = categoryFor(bmi);
+
+    gaugeArc.style.stroke = cat.color;
+    statusPill.style.background = cat.color + '22';
+    statusPill.style.color = cat.color;
+    statusPill.querySelector('.dot').style.background = cat.color;
+    statusText.textContent = cat.label;
+    statusDesc.textContent = cat.desc;
+
+    animateNumber(bmi);
+    animateGauge(bmi);
+
+    document.querySelectorAll('.cat-card').forEach(card => {
+      const isActive = card.dataset.key === cat.key;
+      card.classList.toggle('active', isActive);
+      card.style.color = isActive ? cat.color : '';
+    });
+
+    result.classList.add('show');
+  }
+
+  calcBtn.addEventListener('click', calculate);
+  [heightInput, weightInput].forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+    inp.addEventListener('input', clearValidity);
+  });
+})();
+</script>
+
+</body>
+</html>
